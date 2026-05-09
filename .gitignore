@@ -3,3 +3,4 @@ node_modules/
 chroma_data/
 .DS_Store
 package-lock.json
+PROGRESS.md
