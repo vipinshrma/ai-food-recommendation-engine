@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import { searchFood } from './index.js';
+import { updateDataset } from './dataset_handler.js';
 
 const app = express();
 const PORT = 3000;
@@ -9,8 +10,17 @@ const PORT = 3000;
 app.use(cors());
 app.use(express.json());
 
+// 🔄 Dataset Update Endpoint
+app.post('/api/update-dataset', async (req, res) => {
+    try {
+        const result = await updateDataset();
+        res.json(result);
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
 // 🔍 Search Endpoint
-// Usage: http://localhost:3000/api/search?q=vegan pizza
 app.get('/api/search', async (req, res) => {
     const { q } = req.query;
 

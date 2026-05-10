@@ -32,7 +32,7 @@ export async function searchFood(queryText) {
         // 3. Find the top 3 matches
         const results = await collection.query({
             queryEmbeddings: [queryEmbedding],
-            nResults: 20
+            nResults: 5
         });
 
         // 4. Show the results
@@ -60,12 +60,11 @@ export async function searchFood(queryText) {
                 metadata: metadata
             });
 
-            console.log(`${i + 1}. ${doc} (Score: ${confidence})`);
+            // console.log(`${i + 1}. ${doc} (Score: ${confidence})`);
         });
 
         // 5. Generate a BART Summary (Chef's Recommendation)
         const chefSummary = await generateChefSummary(finalResults);
-        console.log("Chef Summary: ", chefSummary)
 
         return {
             success: true,
