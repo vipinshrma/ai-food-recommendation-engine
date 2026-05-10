@@ -9,6 +9,7 @@ export default function SearchInterface({ initialResults = [] }) {
   const [results, setResults] = useState(initialResults)
   const [chefRecommendation, setChefRecommendation] = useState('')
   const [loading, setLoading] = useState(false)
+  const [recommendationLoading, setRecommendationLoading] = useState(false)
   const [error, setError] = useState('')
   const [selectedItem, setSelectedItem] = useState(null)
 
@@ -17,23 +18,46 @@ export default function SearchInterface({ initialResults = [] }) {
     if (!query.trim()) return
 
     setLoading(true)
+    setRecommendationLoading(false)
     setError('')
+    setChefRecommendation('')
+
     try {
+      // 1. Fetch Search Results first (FAST)
       const response = await fetch(`/api/search?q=${encodeURIComponent(query)}`)
       const data = await response.json()
       
       if (data.success) {
         setResults(data.results)
-        setChefRecommendation(data.chefRecommendation || '')
+        setLoading(false) // Show results immediately
+
+        // 2. Fetch AI Recommendation second (SLOW - Independent)
+        if (data.results && data.results.length > 0) {
+          setRecommendationLoading(true)
+          try {
+            const recResponse = await fetch('/api/recommend', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ results: data.results })
+            })
+            const recData = await recResponse.json()
+            if (recData.success) {
+              setChefRecommendation(recData.chefRecommendation)
+            }
+          } catch (err) {
+            console.error("Chef Recommendation failed:", err)
+          } finally {
+            setRecommendationLoading(false)
+          }
+        }
       } else {
         setError(data.error || 'Something went wrong')
         setResults([])
-        setChefRecommendation('')
+        setLoading(false)
       }
     } catch (err) {
       setError('Could not reach server')
       setResults([])
-    } finally {
       setLoading(false)
     }
   }
@@ -96,7 +120,7 @@ export default function SearchInterface({ initialResults = [] }) {
 
       {/* Chef's Recommendation (BART) */}
       <AnimatePresence mode="wait">
-        {chefRecommendation && !loading && (
+        {(chefRecommendation || recommendationLoading) && !loading && (
           <motion.div 
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -111,9 +135,16 @@ export default function SearchInterface({ initialResults = [] }) {
                 <h4 className="text-xs font-black text-food-accent uppercase tracking-[0.2em]">Chef's Recommendation</h4>
                 <Sparkles size={14} className="text-orange-300" />
               </div>
-              <p className="text-lg text-slate-300 leading-relaxed italic">
-                "{chefRecommendation}"
-              </p>
+              {recommendationLoading ? (
+                <div className="flex flex-col gap-2 py-2">
+                  <div className="h-4 bg-orange-500/10 rounded-full animate-pulse w-full"></div>
+                  <div className="h-4 bg-orange-500/10 rounded-full animate-pulse w-5/6"></div>
+                </div>
+              ) : (
+                <p className="text-lg text-slate-300 leading-relaxed italic">
+                  "{chefRecommendation}"
+                </p>
+              )}
             </div>
           </motion.div>
         )}

@@ -63,13 +63,10 @@ export async function searchFood(queryText) {
             // console.log(`${i + 1}. ${doc} (Score: ${confidence})`);
         });
 
-        // 5. Generate a BART Summary (Chef's Recommendation)
-        const chefSummary = await generateChefSummary(finalResults);
-
+        // 5. Return results immediately (without waiting for BART)
         return {
             success: true,
-            results: finalResults,
-            chefRecommendation: chefSummary
+            results: finalResults
         };
 
     } catch (error) {

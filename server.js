@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import { searchFood } from './index.js';
 import { updateDataset } from './dataset_handler.js';
+import { generateChefSummary } from './bart_summarizer.js';
 
 const app = express();
 const PORT = 3000;
@@ -17,6 +18,23 @@ app.post('/api/update-dataset', async (req, res) => {
         res.json(result);
     } catch (error) {
         res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// 🧑‍🍳 Chef Recommendation Endpoint (AI Summarization)
+app.post('/api/recommend', async (req, res) => {
+    const { results } = req.body;
+
+    if (!results || !Array.isArray(results)) {
+        return res.status(400).json({ success: false, error: "Invalid results provided." });
+    }
+
+    try {
+        console.log("🧑‍🍳 Generating Chef's Recommendation...");
+        const summary = await generateChefSummary(results);
+        res.json({ success: true, chefRecommendation: summary });
+    } catch (error) {
+        res.status(500).json({ success: false, error: "Failed to generate recommendation" });
     }
 });
 
