@@ -1,5 +1,6 @@
 import { ChromaClient } from 'chromadb';
-import { embedder, getOpenAIEmbedding, validateFoodQuery, parseFoodQuery } from './openai_embedder.js';
+import { getOpenAIEmbedding, validateFoodQuery } from './openai_embedder.js';
+import { generateChefSummary } from './bart_summarizer.js';
 
 const client = new ChromaClient({ host: "localhost", port: 8000 });
 
@@ -35,7 +36,7 @@ export async function searchFood(queryText) {
         });
 
         // 4. Show the results
-        console.log("\n--- SEARCH RESULTS ---");
+        // console.log("\n--- SEARCH RESULTS ---");
 
         if (results.documents[0].length === 0) {
             console.log("No matches found.");
@@ -62,9 +63,14 @@ export async function searchFood(queryText) {
             console.log(`${i + 1}. ${doc} (Score: ${confidence})`);
         });
 
+        // 5. Generate a BART Summary (Chef's Recommendation)
+        const chefSummary = await generateChefSummary(finalResults);
+        console.log("Chef Summary: ", chefSummary)
+
         return {
             success: true,
-            results: finalResults
+            results: finalResults,
+            chefRecommendation: chefSummary
         };
 
     } catch (error) {

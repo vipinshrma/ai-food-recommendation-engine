@@ -7,6 +7,7 @@ import { useState } from 'react'
 export default function SearchInterface({ initialResults = [] }) {
   const [query, setQuery] = useState('')
   const [results, setResults] = useState(initialResults)
+  const [chefRecommendation, setChefRecommendation] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [selectedItem, setSelectedItem] = useState(null)
@@ -23,9 +24,11 @@ export default function SearchInterface({ initialResults = [] }) {
       
       if (data.success) {
         setResults(data.results)
+        setChefRecommendation(data.chefRecommendation || '')
       } else {
         setError(data.error || 'Something went wrong')
         setResults([])
+        setChefRecommendation('')
       }
     } catch (err) {
       setError('Could not reach server')
@@ -87,6 +90,31 @@ export default function SearchInterface({ initialResults = [] }) {
             className="bg-red-500/10 border border-red-500/20 text-red-400 px-6 py-3 rounded-2xl font-medium"
           >
             {error}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Chef's Recommendation (BART) */}
+      <AnimatePresence mode="wait">
+        {chefRecommendation && !loading && (
+          <motion.div 
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className="w-full max-w-2xl bg-orange-500/5 border border-orange-500/10 rounded-3xl p-6 flex items-start gap-4 shadow-xl"
+          >
+            <div className="bg-food-accent/20 p-3 rounded-2xl text-food-accent mt-1">
+              <ChefHat size={24} />
+            </div>
+            <div className="flex-1">
+              <div className="flex items-center gap-2 mb-2">
+                <h4 className="text-xs font-black text-food-accent uppercase tracking-[0.2em]">Chef's Recommendation</h4>
+                <Sparkles size={14} className="text-orange-300" />
+              </div>
+              <p className="text-lg text-slate-300 leading-relaxed italic">
+                "{chefRecommendation}"
+              </p>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
